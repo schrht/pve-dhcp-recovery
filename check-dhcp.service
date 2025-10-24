@@ -1,0 +1,8 @@
+[Unit]
+Description=Check network and request temporary DHCP for vmbr0 if offline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/check_network_and_request_dhcp.sh

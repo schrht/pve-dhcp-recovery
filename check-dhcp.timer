@@ -1,0 +1,10 @@
+[Unit]
+Description=Run DHCP recovery 5 minutes after boot
+
+[Timer]
+OnBootSec=5min
+AccuracySec=30s
+Unit=check-dhcp.service
+
+[Install]
+WantedBy=timers.target
