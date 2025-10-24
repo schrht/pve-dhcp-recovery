@@ -26,14 +26,39 @@ It is especially useful for:
 
 ## 🚀 Setup Instructions
 
-1. **Install script:**
+1. **Install `dhclient`:**
+
+This script depends on the **ISC DHCP Client** (`dhclient`).  
+If not installed, run the following command on your Proxmox VE or Debian/Ubuntu system:
+
+```bash
+sudo apt update
+sudo apt install isc-dhcp-client
+````
+
+You can verify installation with:
+
+```bash
+which dhclient
+```
+
+Expected output example:
+
+```
+/usr/sbin/dhclient
+```
+
+If this command shows “not found,” please ensure your `$PATH` includes `/sbin` and `/usr/sbin`.
+
+
+2. **Install script:**
 
 ```bash
 sudo cp check_network_and_request_dhcp.sh /usr/local/bin/
 sudo chmod +x /usr/local/bin/check_network_and_request_dhcp.sh
 ```
 
-2. **Install systemd units:**
+3. **Install systemd units:**
 
 ```bash
 sudo cp check-dhcp.service /etc/systemd/system/
@@ -43,7 +68,7 @@ sudo systemctl enable check-dhcp.timer
 sudo systemctl start check-dhcp.timer
 ```
 
-3. **Check logs:**
+4. **Check logs:**
 
 ```bash
 journalctl -t vmbr0_dhcp_recover
@@ -52,6 +77,7 @@ journalctl -t vmbr0_dhcp_recover
 ## ✅ Tested On
 
 - Proxmox VE 8.4.0
+- Proxmox VE 9.0.3
 
 ## 👤 Maintainer
 

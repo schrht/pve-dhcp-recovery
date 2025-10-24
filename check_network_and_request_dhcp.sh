@@ -21,12 +21,21 @@
 #
 # Tested on:
 #   Proxmox VE 8.4.0
+#   Proxmox VE 9.0.3
 #------------------------------------------------------------------------------
 
 LOG_TAG="vmbr0_dhcp_recover"
 TARGET_IP="8.8.8.8"
 INTERFACE="vmbr0"
-DHCP_CLIENT="/sbin/dhclient"
+
+# Auto-detect dhclient binary
+DHCP_CLIENT=$(command -v dhclient || true)
+
+# Check if dhclient is available
+if [ -z "$DHCP_CLIENT" ] || [ ! -x "$DHCP_CLIENT" ]; then
+    logger -t "$LOG_TAG" "Error: dhclient not found. Please install isc-dhcp-client."
+    exit 1
+fi
 
 # Check if the network is reachable
 if ping -c 2 -W 2 "$TARGET_IP" > /dev/null; then
@@ -57,3 +66,4 @@ else
 fi
 
 exit 0
+
