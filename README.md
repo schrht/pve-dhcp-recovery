@@ -32,9 +32,9 @@ This script depends on the **ISC DHCP Client** (`dhclient`).
 If not installed, run the following command on your Proxmox VE or Debian/Ubuntu system:
 
 ```bash
-sudo apt update
-sudo apt install isc-dhcp-client
-````
+apt update
+apt install isc-dhcp-client
+```
 
 You can verify installation with:
 
@@ -54,18 +54,18 @@ If this command shows “not found,” please ensure your `$PATH` includes `/sbi
 2. **Install script:**
 
 ```bash
-sudo cp check_network_and_request_dhcp.sh /usr/local/bin/
-sudo chmod +x /usr/local/bin/check_network_and_request_dhcp.sh
+cp check_network_and_request_dhcp.sh /usr/local/bin/
+chmod +x /usr/local/bin/check_network_and_request_dhcp.sh
 ```
 
 3. **Install systemd units:**
 
 ```bash
-sudo cp check-dhcp.service /etc/systemd/system/
-sudo cp check-dhcp.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable check-dhcp.timer
-sudo systemctl start check-dhcp.timer
+cp check-dhcp.service /etc/systemd/system/
+cp check-dhcp.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable check-dhcp.timer
+systemctl start check-dhcp.timer
 ```
 
 4. **Check logs:**
