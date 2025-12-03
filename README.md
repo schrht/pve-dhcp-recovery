@@ -9,10 +9,15 @@ This script detects when a PVE host with a **statically configured IP** has lost
 - Requesting a temporary DHCP address
 - Verifying connectivity (via `ping 8.8.8.8`)
 
-It is especially useful for:
-- Portable PVE hosts or test benches
-- Remote environments where the static IP no longer works
-- Remote recovery via Tailscale
+This script is particularly helpful if your Proxmox VE host is moved to a new network and loses connectivity because its static IP configuration no longer matches the new environment. In such offsite scenarios, restoring network access can be difficult. By providing automatic, self-healing network recovery, these scripts make it much easier to regain remote access to your PVE host.
+
+## ⚠️ Restrictions & Important Notes
+
+- **No IP Conflict Detection:**  
+  This script does *not* detect IP address conflicts. If another host on the network uses the same static IP as your PVE host, this script will not warn you or automatically resolve the collision.
+
+- **Recommendation for Unknown Networks:**  
+  If you are moving your PVE host to an unknown or unmanged network, it is recommended to intentionally set a static IP address that you know will *not* work (e.g., an unused or obviously incorrect address). This way, the DHCP-based recovery can safely obtain a working address without risking IP conflicts. Always allow DHCP to assign a suitable and conflict-free IP in unfamiliar network environments.
 
 ## 📂 Files
 
@@ -78,6 +83,7 @@ journalctl -t vmbr0_dhcp_recover
 
 - Proxmox VE 8.4.0
 - Proxmox VE 9.0.3
+- Proxmox VE 9.1.1
 
 ## 👤 Maintainer
 
