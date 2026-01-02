@@ -31,6 +31,36 @@ INTERFACE="vmbr0"
 # Auto-detect dhclient binary
 DHCP_CLIENT=$(command -v dhclient || true)
 
+# Function to detect gateway IP address
+get_gateway_ip() {
+    # Try to get default gateway from routing table
+    GATEWAY=$(ip route show default 2>/dev/null | grep -oP 'via \K[\d.]+' | head -n 1)
+    
+    # If no default route found, try to get gateway from interface route
+    if [ -z "$GATEWAY" ]; then
+        GATEWAY=$(ip route | grep "dev $INTERFACE" | grep default | grep -oP 'via \K[\d.]+' | head -n 1)
+    fi
+    
+    # If still no gateway, try common gateway addresses based on current IP
+    if [ -z "$GATEWAY" ]; then
+        CURRENT_IP=$(ip -4 addr show "$INTERFACE" 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
+        if [ -n "$CURRENT_IP" ]; then
+            # Extract network prefix (first 3 octets)
+            NETWORK_PREFIX=$(echo "$CURRENT_IP" | cut -d. -f1-3)
+            # Try common gateway addresses
+            for suffix in 1 254; do
+                TEST_GATEWAY="${NETWORK_PREFIX}.${suffix}"
+                if ping -c 1 -W 1 "$TEST_GATEWAY" > /dev/null 2>&1; then
+                    GATEWAY="$TEST_GATEWAY"
+                    break
+                fi
+            done
+        fi
+    fi
+    
+    echo "$GATEWAY"
+}
+
 # Check if dhclient is available
 if [ -z "$DHCP_CLIENT" ] || [ ! -x "$DHCP_CLIENT" ]; then
     logger -t "$LOG_TAG" "Error: dhclient not found. Please install isc-dhcp-client."
@@ -43,7 +73,26 @@ if ping -c 2 -W 2 "$TARGET_IP" > /dev/null; then
     exit 0
 fi
 
-logger -t "$LOG_TAG" "Network unreachable. Attempting DHCP recovery on $INTERFACE..."
+logger -t "$LOG_TAG" "Network unreachable. Checking gateway connectivity to determine if issue is local or external..."
+
+# Detect gateway IP
+GATEWAY_IP=$(get_gateway_ip)
+
+if [ -n "$GATEWAY_IP" ]; then
+    logger -t "$LOG_TAG" "Detected gateway: $GATEWAY_IP"
+    
+    # Check if gateway is reachable
+    if ping -c 2 -W 2 "$GATEWAY_IP" > /dev/null; then
+        logger -t "$LOG_TAG" "Gateway is reachable but internet is not. This indicates an external network issue (router/internet problem). Skipping DHCP recovery."
+        exit 0
+    else
+        logger -t "$LOG_TAG" "Gateway is unreachable. This indicates a local network configuration issue. Proceeding with DHCP recovery."
+    fi
+else
+    logger -t "$LOG_TAG" "Could not detect gateway. Assuming local network configuration issue. Proceeding with DHCP recovery."
+fi
+
+logger -t "$LOG_TAG" "Attempting DHCP recovery on $INTERFACE..."
 
 # Flush all existing IPv4 addresses on the interface
 ip addr flush dev "$INTERFACE"
