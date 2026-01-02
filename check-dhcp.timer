@@ -1,8 +1,9 @@
 [Unit]
-Description=Run DHCP recovery 5 minutes after boot
+Description=Run DHCP recovery 5 minutes after boot, then every 30 minutes
 
 [Timer]
 OnBootSec=5min
+OnUnitActiveSec=30min
 AccuracySec=30s
 Unit=check-dhcp.service
 
